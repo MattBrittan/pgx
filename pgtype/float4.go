@@ -176,6 +176,8 @@ func (Float4Codec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPl
 		switch target.(type) {
 		case *float32:
 			return scanPlanBinaryFloat4ToFloat32{}
+		case *float64:
+			return scanPlanBinaryFloat4ToFloat64{}
 		case Float64Scanner:
 			return scanPlanBinaryFloat4ToFloat64Scanner{}
 		case Int64Scanner:
@@ -187,6 +189,8 @@ func (Float4Codec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPl
 		switch target.(type) {
 		case *float32:
 			return scanPlanTextAnyToFloat32{}
+		case *float64:
+			return scanPlanTextAnyToFloat64{}
 		case Float64Scanner:
 			return scanPlanTextAnyToFloat64Scanner{}
 		case Int64Scanner:
@@ -211,6 +215,24 @@ func (scanPlanBinaryFloat4ToFloat32) Scan(src []byte, dst any) error {
 	n := int32(binary.BigEndian.Uint32(src))
 	f := (dst).(*float32)
 	*f = math.Float32frombits(uint32(n))
+
+	return nil
+}
+
+type scanPlanBinaryFloat4ToFloat64 struct{}
+
+func (scanPlanBinaryFloat4ToFloat64) Scan(src []byte, dst any) error {
+	if src == nil {
+		return fmt.Errorf("cannot scan NULL into %T", dst)
+	}
+
+	if len(src) != 4 {
+		return fmt.Errorf("invalid length for float4: %v", len(src))
+	}
+
+	n := int32(binary.BigEndian.Uint32(src))
+	f := (dst).(*float64)
+	*f = float64(math.Float32frombits(uint32(n)))
 
 	return nil
 }
